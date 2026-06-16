@@ -32,13 +32,22 @@ import { User } from '../models/user.model';
         </div>
 
         <!-- Form Section -->
-        <div class="md:col-span-2">
+        <div class="md:col-span-2 relative">
+          @if (isLoading() && !user().id) {
+            <div class="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-xl">
+              <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          }
           <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
             <div class="px-6 py-4 bg-gray-50/50 border-b">
               <h3 class="font-bold text-slate-800">Account Details</h3>
             </div>
             <div class="p-6">
               <form (ngSubmit)="onUpdateProfile()" class="space-y-6">
+                <!-- ... existing form fields ... -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">First Name</label>
@@ -73,9 +82,17 @@ import { User } from '../models/user.model';
                 </div>
 
                 <div class="pt-6 border-t flex justify-end">
-                  <button type="submit" 
-                          class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold shadow-sm transition duration-200 uppercase tracking-widest text-xs">
-                    Save Changes
+                  <button type="submit" [disabled]="isLoading()"
+                          class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold shadow-sm transition duration-200 uppercase tracking-widest text-xs flex items-center gap-2">
+                    @if (isLoading()) {
+                      <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    } @else {
+                      Save Changes
+                    }
                   </button>
                 </div>
               </form>
@@ -88,6 +105,7 @@ import { User } from '../models/user.model';
 })
 export class ProfileComponent implements OnInit {
   user = signal<User>({ id: '', username: '', email: '' });
+  isLoading = signal(false);
 
   constructor(private userService: UserService) {}
 
@@ -96,19 +114,31 @@ export class ProfileComponent implements OnInit {
   }
 
   loadProfile(): void {
+    this.isLoading.set(true);
     this.userService.getCurrentUser().subscribe({
-      next: (data) => this.user.set(data),
-      error: (err) => console.error('Error loading profile', err)
+      next: (data) => {
+        this.user.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading profile', err);
+        this.isLoading.set(false);
+      }
     });
   }
 
   onUpdateProfile(): void {
+    this.isLoading.set(true);
     this.userService.updateProfile(this.user()).subscribe({
       next: (data) => {
         this.user.set(data);
+        this.isLoading.set(false);
         alert('Profile updated successfully!');
       },
-      error: (err) => alert('Failed to update profile.')
+      error: (err) => {
+        this.isLoading.set(false);
+        alert('Failed to update profile.');
+      }
     });
   }
 }

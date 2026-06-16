@@ -45,49 +45,63 @@ import { LanguageService } from '../services/language.service';
                 <th class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">{{ langService.translate('delete') }}</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
-              @for (record of currentMonthRecords(); track record.id) {
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                    <span class="font-medium">{{ record.incomeType }}</span>
-                    @if (record.paymentStatus !== 'PENDING') {
-                      <span class="text-xs text-slate-400 ml-1">(งวดที่ {{ record.installment }})</span>
-                    }
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold">Due: {{ record.dueDate || '-' }}</div>
-                    <div class="text-sm text-slate-600 font-medium">Paid: {{ record.paymentDate || '-' }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span [ngClass]="record.paymentStatus === 'PENDING' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'"
-                          class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">
-                      {{ record.paymentStatus || 'PAID' }}
-                    </span>
-                    <button (click)="viewInterest(record.id!)" 
-                            class="block mt-1 text-[10px] text-blue-600 hover:underline font-bold">
-                      {{ langService.translate('check_interest') }}
-                    </button>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ record.grossIncome | currency:'THB':'':'1.2-2' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">{{ record.netIncome | currency:'THB':'':'1.2-2' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button (click)="onEdit(record)" class="text-blue-600 hover:text-blue-900 mr-4 inline-flex items-center gap-1 transition-colors">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                      {{ langService.translate('edit') }}
-                    </button>
-                    <button (click)="onDelete(record.id!)" class="text-red-600 hover:text-red-900 inline-flex items-center gap-1 transition-colors">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                      {{ langService.translate('delete') }}
-                    </button>
-                  </td>
-                </tr>
-              }
-              @if (currentMonthRecords().length === 0) {
+            <tbody class="bg-white divide-y divide-gray-100 relative">
+              @if (isTableLoading()) {
                 <tr>
-                  <td colspan="6" class="px-6 py-8 text-center text-gray-400 text-sm italic">
-                    {{ langService.translate('no_records_this_month') }}
+                  <td colspan="6" class="px-6 py-20 text-center">
+                    <div class="flex flex-col items-center justify-center gap-3">
+                      <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span class="text-sm font-medium text-slate-500">กำลังโหลดข้อมูล...</span>
+                    </div>
                   </td>
                 </tr>
+              } @else {
+                @for (record of currentMonthRecords(); track record.id) {
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                      <span class="font-medium">{{ record.incomeType }}</span>
+                      @if (record.paymentStatus !== 'PENDING') {
+                        <span class="text-xs text-slate-400 ml-1">(งวดที่ {{ record.installment }})</span>
+                      }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-[10px] text-slate-400 uppercase font-bold">Due: {{ record.dueDate || '-' }}</div>
+                      <div class="text-sm text-slate-600 font-medium">Paid: {{ record.paymentDate || '-' }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span [ngClass]="record.paymentStatus === 'PENDING' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">
+                        {{ record.paymentStatus || 'PAID' }}
+                      </span>
+                      <button (click)="viewInterest(record.id!)" 
+                              class="block mt-1 text-[10px] text-blue-600 hover:underline font-bold">
+                        {{ langService.translate('check_interest') }}
+                      </button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ record.grossIncome | currency:'THB':'':'1.2-2' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">{{ record.netIncome | currency:'THB':'':'1.2-2' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button (click)="onEdit(record)" class="text-blue-600 hover:text-blue-900 mr-4 inline-flex items-center gap-1 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        {{ langService.translate('edit') }}
+                      </button>
+                      <button (click)="onDelete(record.id!)" class="text-red-600 hover:text-red-900 inline-flex items-center gap-1 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        {{ langService.translate('delete') }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+                @if (currentMonthRecords().length === 0) {
+                  <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-400 text-sm italic">
+                      {{ langService.translate('no_records_this_month') }}
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -197,6 +211,7 @@ export class SalaryManagementComponent implements OnInit {
   selectedRecord: IncomeRecord | null = null;
   selectedInterest = signal<InterestCalculationResponse | null>(null);
   showForm = signal(false);
+  isTableLoading = signal(false);
 
   @ViewChild('formSection') formSection: any;
 
@@ -211,6 +226,7 @@ export class SalaryManagementComponent implements OnInit {
   }
 
   loadCurrentMonthRecords(): void {
+    this.isTableLoading.set(true);
     this.incomeService.getIncomeRecords(this.selectedMonth).subscribe({
       next: (data) => {
         // เรียงลำดับตาม dueDate (จากน้อยไปมาก)
@@ -220,8 +236,12 @@ export class SalaryManagementComponent implements OnInit {
           return dateA - dateB;
         });
         this.currentMonthRecords.set(sortedData);
+        this.isTableLoading.set(false);
       },
-      error: (err) => console.error('Error loading records', err)
+      error: (err) => {
+        console.error('Error loading records', err);
+        this.isTableLoading.set(false);
+      }
     });
   }
 

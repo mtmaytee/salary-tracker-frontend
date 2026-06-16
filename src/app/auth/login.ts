@@ -40,9 +40,17 @@ import { AuthService } from '../services/auth.service';
                 <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Forgot your password?</a>
               </div>
             </div>
-            <button type="submit" [disabled]="!loginForm.valid"
+            <button type="submit" [disabled]="!loginForm.valid || isLoading()"
               class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 transition duration-150 ease-in-out">
-              LOGIN
+              @if (isLoading()) {
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                PLEASE WAIT...
+              } @else {
+                LOGIN
+              }
             </button>
           </form>
           <div class="mt-8 pt-6 border-t border-gray-100 text-center">
@@ -57,14 +65,22 @@ import { AuthService } from '../services/auth.service';
 })
 export class LoginComponent {
   credentials = { username: '', password: '' };
+  isLoading = signal(false);
   errorMsg = signal<string | null>(null);
 
   constructor(private authService: AuthService, private router: Router) {}
 
   onLogin(): void {
+    this.isLoading.set(true);
+    this.errorMsg.set(null);
+    
     this.authService.login(this.credentials).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/dashboard']);
+      },
       error: (err) => {
+        this.isLoading.set(false);
         if (err.status === 401 || err.status === 403) {
           this.errorMsg.set('Invalid username or password');
         } else {
