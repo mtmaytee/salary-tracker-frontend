@@ -24,6 +24,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // Token expired or invalid
         authService.logout();
         router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+      } else if (error.status === 503 || error.status === 0) {
+        // Database connection issue or backend down
+        console.error('Service Unavailable: Database might be down', error);
+        // We could potentially redirect to a "Maintenance" page or show a global toast
       }
       return throwError(() => error);
     })

@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -15,6 +15,24 @@ import { AuthService } from '../services/auth.service';
           <h2 class="text-2xl font-bold text-gray-800 text-center uppercase tracking-wider">Login</h2>
         </div>
         <div class="p-8">
+          @if (isDbDown()) {
+            <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg">
+              <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <h3 class="font-bold text-orange-800">Database is Sleeping</h3>
+              </div>
+              <p class="text-sm text-orange-700 leading-relaxed">
+                ระบบฐานข้อมูลกำลังพักผ่อน (Cold Start) กรุณารอสักครู่แอปกำลังทำการปลุก Database ให้ตื่นขึ้นมาทำงานครับ
+              </p>
+              <button (click)="checkDatabaseHealth()" class="mt-3 text-xs font-bold text-orange-600 hover:text-orange-800 uppercase tracking-wider flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                ลองตรวจสอบอีกครั้ง
+              </button>
+            </div>
+          }
+
           <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="space-y-6">
             @if (errorMsg()) {
               <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
@@ -63,16 +81,33 @@ import { AuthService } from '../services/auth.service';
     </div>
   `
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   credentials = { username: '', password: '' };
   isLoading = signal(false);
   errorMsg = signal<string | null>(null);
+  isDbDown = signal(false);
 
   constructor(private authService: AuthService, private router: Router) {}
+
+  ngOnInit(): void {
+    this.checkDatabaseHealth();
+  }
+
+  checkDatabaseHealth(): void {
+    this.authService.checkHealth().subscribe({
+      error: (err) => {
+        if (err.status === 503 || err.status === 0) {
+          this.isDbDown.set(true);
+          this.errorMsg.set('ระบบฐานข้อมูลกำลังพักผ่อน กรุณารอสักครู่ (กำลังปลุก Database)');
+        }
+      }
+    });
+  }
 
   onLogin(): void {
     this.isLoading.set(true);
     this.errorMsg.set(null);
+    this.isDbDown.set(false);
     
     this.authService.login(this.credentials).subscribe({
       next: () => {
@@ -81,7 +116,10 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        if (err.status === 401 || err.status === 403) {
+        if (err.status === 503 || err.status === 0) {
+          this.isDbDown.set(true);
+          this.errorMsg.set('ระบบฐานข้อมูลกำลังพักผ่อน กรุณารอสักครู่ (กำลังปลุก Database)');
+        } else if (err.status === 401 || err.status === 403) {
           this.errorMsg.set('Invalid username or password');
         } else {
           this.errorMsg.set('Login failed. Please try again.');

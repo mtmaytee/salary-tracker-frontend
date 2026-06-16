@@ -155,9 +155,13 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        // แสดงข้อความ Error จาก Backend หากมี หรือใช้ Default message
-        const message = err.error?.message || err.error || 'Registration failed. Please try again.';
-        this.errorMsg.set(message);
+        if (err.status === 503 || err.status === 0) {
+          this.errorMsg.set('ระบบฐานข้อมูลกำลังพักผ่อน กรุณารอสักครู่ (กำลังปลุก Database)');
+        } else {
+          // แสดงข้อความ Error จาก Backend หากมี หรือใช้ Default message
+          const message = err.error?.message || err.error || 'Registration failed. Please try again.';
+          this.errorMsg.set(message);
+        }
         console.error('Registration failed', err);
       }
     });

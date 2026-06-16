@@ -91,4 +91,8 @@ export class AuthService {
   verifyEmail(token: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/verify/${token}`);
   }
+
+  checkHealth(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/health`);
+  }
 }
