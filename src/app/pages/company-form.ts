@@ -50,9 +50,17 @@ import { CompanyService } from '../services/company.service';
                     class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition">
               Cancel
             </button>
-            <button type="submit" [disabled]="!companyForm.form.valid"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-sm transition duration-200 disabled:bg-gray-300 uppercase tracking-widest text-xs">
-              {{ isEdit ? 'Update Company' : 'Save Company' }}
+            <button type="submit" [disabled]="!companyForm.form.valid || isLoading"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-sm transition duration-200 disabled:bg-gray-300 uppercase tracking-widest text-xs flex items-center gap-2">
+              @if (isLoading) {
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              } @else {
+                {{ isEdit ? 'Update Company' : 'Save Company' }}
+              }
             </button>
           </div>
         </form>
@@ -67,6 +75,7 @@ export class CompanyFormComponent implements OnInit {
 
   model: Company = { id: '', name: '', industry: '', address: '' };
   isEdit = false;
+  isLoading = false;
 
   constructor(private companyService: CompanyService) {}
 
@@ -78,13 +87,20 @@ export class CompanyFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.isLoading = true;
     const action = this.isEdit 
       ? this.companyService.updateCompany(this.model.id, this.model)
       : this.companyService.createCompany(this.model);
 
     action.subscribe({
-      next: () => this.onSuccess.emit(),
-      error: (err) => alert('Failed to save company. Please check your connection or backend logs.')
+      next: () => {
+        this.isLoading = false;
+        this.onSuccess.emit();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        alert('Failed to save company. Please check your connection or backend logs.');
+      }
     });
   }
 }

@@ -23,45 +23,67 @@ import { Company } from '../models/company.model';
       </div>
 
       <!-- รายการสัญญาจ้าง -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (emp of employments(); track emp.id) {
-          <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
-            <div class="flex justify-between items-start mb-4">
-              <div>
-                <h3 class="font-bold text-slate-800">{{ emp.companyName || 'ไม่ระบุบริษัท' }}</h3>
-                <span class="text-xs text-slate-400">ID: {{ emp.id }}</span>
-              </div>
-              <div class="flex gap-1">
-                <button (click)="onEdit(emp)" class="text-blue-400 hover:text-blue-600 p-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </button>
-                <button (click)="onDelete(emp.id!)" class="text-red-400 hover:text-red-600 p-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="space-y-2">
-              <div class="flex justify-between text-sm">
-                <span class="text-slate-500">เงินเดือนพื้นฐาน:</span>
-                <span class="font-bold text-slate-700">{{ emp.baseSalary | currency:'THB':'':'1.2-2' }}</span>
-              </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-500">ประกันสังคม:</span>
-                <span class="text-orange-600">{{ emp.expectedSso | currency:'THB':'':'1.2-2' }}</span>
-              </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-500">ภาษีโดยประมาณ:</span>
-                <span class="text-red-500">{{ emp.expectedTax | currency:'THB':'':'1.2-2' }}</span>
-              </div>
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative">
+        @if (isLoading() && !showForm()) {
+          <div class="col-span-full py-20 flex flex-col items-center justify-center gap-3">
+            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm font-medium text-slate-500">กำลังโหลดข้อมูลสัญญาจ้าง...</span>
           </div>
+        } @else {
+          @for (emp of employments(); track emp.id) {
+            <!-- ... existing employment card ... -->
+            <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="font-bold text-slate-800">{{ emp.companyName || 'ไม่ระบุบริษัท' }}</h3>
+                  <span class="text-xs text-slate-400">ID: {{ emp.id }}</span>
+                </div>
+                <div class="flex gap-1">
+                  <button (click)="onEdit(emp)" class="text-blue-400 hover:text-blue-600 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button (click)="onDelete(emp.id!)" class="text-red-400 hover:text-red-600 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-500">เงินเดือนพื้นฐาน:</span>
+                  <span class="font-bold text-slate-700">{{ emp.baseSalary | currency:'THB':'':'1.2-2' }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-500">ประกันสังคม:</span>
+                  <span class="text-orange-600">{{ emp.expectedSso | currency:'THB':'':'1.2-2' }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-500">ภาษีโดยประมาณ:</span>
+                  <span class="text-red-500">{{ emp.expectedTax | currency:'THB':'':'1.2-2' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+          @if (employments().length === 0 && !isLoading()) {
+            <div class="col-span-full py-20 text-center text-slate-400 italic">ยังไม่มีข้อมูลสัญญาจ้าง</div>
+          }
         }
       </div>
 
       <!-- ฟอร์มเพิ่ม/แก้ไข (Overlay) -->
       @if (showForm()) {
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            @if (isLoading()) {
+              <div class="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            }
             <div class="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
               <h2 class="font-bold text-slate-800">ข้อมูลสัญญาจ้าง</h2>
               <button (click)="showForm.set(false)" class="text-slate-400 hover:text-slate-600">
@@ -69,6 +91,7 @@ import { Company } from '../models/company.model';
               </button>
             </div>
             <form (ngSubmit)="onSubmit()" class="p-6 space-y-4">
+              <!-- ... existing form fields ... -->
               <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">บริษัท</label>
                 <select [(ngModel)]="model.companyId" name="companyId" required
@@ -108,8 +131,17 @@ import { Company } from '../models/company.model';
                 </div>
               </div>
               <div class="pt-4">
-                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">
-                  บันทึกสัญญาจ้าง
+                <button type="submit" [disabled]="isLoading()"
+                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                  @if (isLoading()) {
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    กำลังบันทึก...
+                  } @else {
+                    บันทึกสัญญาจ้าง
+                  }
                 </button>
               </div>
             </form>
@@ -124,6 +156,7 @@ export class EmploymentManagementComponent implements OnInit {
   companies = signal<Company[]>([]);
   showForm = signal(false);
   isCalculating = signal(false);
+  isLoading = signal(false);
   
   model: Employment = this.getEmptyModel();
 
@@ -153,6 +186,7 @@ export class EmploymentManagementComponent implements OnInit {
   }
 
   loadData(): void {
+    this.isLoading.set(true);
     forkJoin({
       employments: this.employmentService.getEmployments(),
       companies: this.companyService.getCompanies()
@@ -177,8 +211,12 @@ export class EmploymentManagementComponent implements OnInit {
         });
         
         this.employments.set(mapped);
+        this.isLoading.set(false);
       },
-      error: (err) => console.error('Error loading employment data', err)
+      error: (err) => {
+        console.error('Error loading employment data', err);
+        this.isLoading.set(false);
+      }
     });
   }
 
@@ -193,22 +231,34 @@ export class EmploymentManagementComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.model.id) {
-      this.employmentService.updateEmployment(this.model.id, this.model).subscribe(() => {
+    this.isLoading.set(true);
+    const action = this.model.id 
+      ? this.employmentService.updateEmployment(this.model.id, this.model)
+      : this.employmentService.createEmployment(this.model);
+
+    action.subscribe({
+      next: () => {
         this.loadData();
         this.showForm.set(false);
-      });
-    } else {
-      this.employmentService.createEmployment(this.model).subscribe(() => {
-        this.loadData();
-        this.showForm.set(false);
-      });
-    }
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        console.error('Error saving employment', err);
+      }
+    });
   }
 
   onDelete(id: string): void {
     if (confirm('ยืนยันการลบสัญญาจ้างนี้?')) {
-      this.employmentService.deleteEmployment(id).subscribe(() => this.loadData());
+      this.isLoading.set(true);
+      this.employmentService.deleteEmployment(id).subscribe({
+        next: () => this.loadData(),
+        error: (err) => {
+          this.isLoading.set(false);
+          console.error('Error deleting employment', err);
+        }
+      });
     }
   }
 
